@@ -20,7 +20,7 @@ Matrix generateRandomMatrix(int n) {
 Matrix standardMultiply(const Matrix& A, const Matrix& B) {
     int n = A.size();
     Matrix C(n, vector<int>(n, 0));
-    #pragma omp parallel for collapse(3)
+    
     for (int i = 0; i < n; i++) {
         for (int k = 0; k < n; k++) {
             for (int j = 0; j < n; j++) {
