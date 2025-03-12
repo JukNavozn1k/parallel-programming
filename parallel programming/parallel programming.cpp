@@ -7,7 +7,7 @@
 using namespace std;
 using Matrix = vector<vector<int>>;
 
-const int STRASSEN_THRESHOLD = 32;
+const int STRASSEN_THRESHOLD = 64;
 
 Matrix generateRandomMatrix(int n) {
     Matrix A(n, vector<int>(n));
@@ -20,7 +20,7 @@ Matrix generateRandomMatrix(int n) {
 Matrix standardMultiply(const Matrix& A, const Matrix& B) {
     int n = A.size();
     Matrix C(n, vector<int>(n, 0));
-#pragma omp parallel for
+    #pragma omp parallel for collapse(3)
     for (int i = 0; i < n; i++) {
         for (int k = 0; k < n; k++) {
             for (int j = 0; j < n; j++) {
@@ -34,7 +34,7 @@ Matrix standardMultiply(const Matrix& A, const Matrix& B) {
 Matrix add(const Matrix& A, const Matrix& B) {
     int n = A.size();
     Matrix C(n, vector<int>(n, 0));
-#pragma omp parallel for collapse(2)
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             C[i][j] = A[i][j] + B[i][j];
@@ -44,7 +44,7 @@ Matrix add(const Matrix& A, const Matrix& B) {
 Matrix subtract(const Matrix& A, const Matrix& B) {
     int n = A.size();
     Matrix C(n, vector<int>(n, 0));
-#pragma omp parallel for collapse(2)
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             C[i][j] = A[i][j] - B[i][j];
@@ -115,7 +115,7 @@ Matrix strassenParallel(const Matrix& A, const Matrix& B) {
         }
 
     Matrix M1, M2, M3, M4, M5, M6, M7;
-    #pragma omp parallel
+    #pragma omp parallel num_threads(12)
     {
     #pragma omp single nowait
         {
@@ -140,40 +140,34 @@ Matrix strassenParallel(const Matrix& A, const Matrix& B) {
     return add(subtract(add(M1, M4), M5), M7);
 }
 int main() {
-    int n = 1024;
+    int n = 512;
     Matrix A = generateRandomMatrix(n);
     Matrix B = generateRandomMatrix(n);
 
     Matrix C_std, C_seq, C_par;
     double time_std, time_seq, time_par;
-    omp_set_num_threads(12); // Гарантируем 3 потока
-#pragma omp parallel sections
-    {
-#pragma omp section
-        {
-            auto start = chrono::high_resolution_clock::now();
-            C_std = standardMultiply(A, B);
-            auto end = chrono::high_resolution_clock::now();
-            time_std = chrono::duration<double, milli>(end - start).count();
-        }
 
-#pragma omp section
-        {
-            auto start = chrono::high_resolution_clock::now();
-            C_seq = strassenSequential(A, B);
-            auto end = chrono::high_resolution_clock::now();
-            time_seq = chrono::duration<double, milli>(end - start).count();
-        }
+    // omp_set_num_threads(12); // Гарантируем 12 потоков
 
-#pragma omp section
-        {
-            auto start = chrono::high_resolution_clock::now();
-            C_par = strassenParallel(A, B);
-            auto end = chrono::high_resolution_clock::now();
-            time_par = chrono::duration<double, milli>(end - start).count();
-        }
-    }
+    // Стандартное умножение
+    auto start_std = chrono::high_resolution_clock::now();
+    C_std = standardMultiply(A, B);
+    auto end_std = chrono::high_resolution_clock::now();
+    time_std = chrono::duration<double, milli>(end_std - start_std).count();
 
+    // Последовательное умножение (Штрассен)
+    auto start_seq = chrono::high_resolution_clock::now();
+    C_seq = strassenSequential(A, B);
+    auto end_seq = chrono::high_resolution_clock::now();
+    time_seq = chrono::duration<double, milli>(end_seq - start_seq).count();
+
+    // Параллельное умножение (Штрассен)
+    auto start_par = chrono::high_resolution_clock::now();
+    C_par = strassenParallel(A, B);
+    auto end_par = chrono::high_resolution_clock::now();
+    time_par = chrono::duration<double, milli>(end_par - start_par).count();
+
+    // Вывод времени выполнения
     cout << "Standard multiply: " << time_std << " ms\n";
     cout << "Sequential Strassen: " << time_seq << " ms\n";
     cout << "Parallel Strassen: " << time_par << " ms\n";
