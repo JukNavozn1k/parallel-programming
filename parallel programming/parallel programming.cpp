@@ -141,7 +141,7 @@ double measureTime(Func func, Args&&... args) {
 
 int main() {
     // Устанавливаем размер матриц: n = 2^k, например k=3 -> n=8
-    int k = 10; // можно изменить значение k
+    int k = 7; // можно изменить значение k
     int n = 1 << k;
 
     // Генерация случайных матриц
@@ -163,10 +163,10 @@ int main() {
     // Валидация: сравнение результатов
     bool valid = validateMatrices(C_std, C_strassen);
 
-    cout << "Размер матрицы: " << n << "x" << n << "\n";
-    cout << "Время стандартного умножения: " << time_std << " ms\n";
-    cout << "Время умножения Штрассена: " << time_strassen << " ms\n";
-    cout << "Результаты совпадают: " << (valid ? "Да" : "Нет") << "\n";
+    cout << "Matrix shape: " << n << "x" << n << "\n";
+    cout << "Standart time: " << time_std << " ms\n";
+    cout << "Strassen time: " << time_strassen << " ms\n";
+    cout << "Standart equals Strassen: " << (valid ? "yes" : "no") << "\n";
 
     return 0;
 }
