@@ -8,7 +8,7 @@
 using namespace std;
 using Matrix = vector<vector<int>>;
 
-const int STRASSEN_THRESHOLD = 64; // Порог для переключения на стандартное умножение
+const int STRASSEN_THRESHOLD = 32; // Порог для переключения на стандартное умножение
 
 // Функция для генерации случайной матрицы размера n x n (n = 2^k)
 Matrix generateRandomMatrix(int n) {
