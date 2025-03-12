@@ -115,50 +115,68 @@ Matrix strassenParallel(const Matrix& A, const Matrix& B) {
         }
 
     Matrix M1, M2, M3, M4, M5, M6, M7;
-#pragma omp parallel
+    #pragma omp parallel
     {
-#pragma omp single nowait
+    #pragma omp single nowait
         {
-#pragma omp task shared(M1)
+    #pragma omp task shared(M1)
             M1 = strassenParallel(add(A11, A22), add(B11, B22));
-#pragma omp task shared(M2)
+    #pragma omp task shared(M2)
             M2 = strassenParallel(add(A21, A22), B11);
-#pragma omp task shared(M3)
+    #pragma omp task shared(M3)
             M3 = strassenParallel(A11, subtract(B12, B22));
-#pragma omp task shared(M4)
+    #pragma omp task shared(M4)
             M4 = strassenParallel(A22, subtract(B21, B11));
-#pragma omp task shared(M5)
+    #pragma omp task shared(M5)
             M5 = strassenParallel(add(A11, A12), B22);
-#pragma omp task shared(M6)
+    #pragma omp task shared(M6)
             M6 = strassenParallel(subtract(A21, A11), add(B11, B12));
-#pragma omp task shared(M7)
+    #pragma omp task shared(M7)
             M7 = strassenParallel(subtract(A12, A22), add(B21, B22));
-#pragma omp taskwait
+    #pragma omp taskwait
         }
     }
 
     return add(subtract(add(M1, M4), M5), M7);
 }
-
 int main() {
     int n = 1024;
     Matrix A = generateRandomMatrix(n);
     Matrix B = generateRandomMatrix(n);
 
-    auto start = chrono::high_resolution_clock::now();
-    Matrix C_std = standardMultiply(A, B);
-    auto end = chrono::high_resolution_clock::now();
-    cout << "Standard multiply: " << chrono::duration_cast<chrono::milliseconds>(end - start).count() << " ms\n";
+    Matrix C_std, C_seq, C_par;
+    double time_std, time_seq, time_par;
 
-    start = chrono::high_resolution_clock::now();
-    Matrix C_seq = strassenSequential(A, B);
-    end = chrono::high_resolution_clock::now();
-    cout << "Sequential Strassen: " << chrono::duration_cast<chrono::milliseconds>(end - start).count() << " ms\n";
+#pragma omp parallel sections
+    {
+#pragma omp section
+        {
+            auto start = chrono::high_resolution_clock::now();
+            C_std = standardMultiply(A, B);
+            auto end = chrono::high_resolution_clock::now();
+            time_std = chrono::duration<double, milli>(end - start).count();
+        }
 
-    start = chrono::high_resolution_clock::now();
-    Matrix C_par = strassenParallel(A, B);
-    end = chrono::high_resolution_clock::now();
-    cout << "Parallel Strassen: " << chrono::duration_cast<chrono::milliseconds>(end - start).count() << " ms\n";
+#pragma omp section
+        {
+            auto start = chrono::high_resolution_clock::now();
+            C_seq = strassenSequential(A, B);
+            auto end = chrono::high_resolution_clock::now();
+            time_seq = chrono::duration<double, milli>(end - start).count();
+        }
+
+#pragma omp section
+        {
+            auto start = chrono::high_resolution_clock::now();
+            C_par = strassenParallel(A, B);
+            auto end = chrono::high_resolution_clock::now();
+            time_par = chrono::duration<double, milli>(end - start).count();
+        }
+    }
+
+    cout << "Standard multiply: " << time_std << " ms\n";
+    cout << "Sequential Strassen: " << time_seq << " ms\n";
+    cout << "Parallel Strassen: " << time_par << " ms\n";
 
     return 0;
 }
