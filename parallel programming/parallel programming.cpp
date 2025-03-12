@@ -146,7 +146,7 @@ int main() {
 
     Matrix C_std, C_seq, C_par;
     double time_std, time_seq, time_par;
-
+    omp_set_num_threads(12); // Гарантируем 3 потока
 #pragma omp parallel sections
     {
 #pragma omp section
