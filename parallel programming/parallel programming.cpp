@@ -163,7 +163,7 @@ int main() {
     Matrix C_std, C_seq, C_par;
     double time_std, time_seq, time_par;
 
-    omp_set_num_threads(2); 
+	omp_set_num_threads(2); // Установка количества потоков
 
     // Стандартное умножение
     auto start_std = chrono::high_resolution_clock::now();
