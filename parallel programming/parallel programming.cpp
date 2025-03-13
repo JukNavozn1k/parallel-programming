@@ -20,7 +20,7 @@ Matrix generateRandomMatrix(int n) {
 Matrix standardMultiply(const Matrix& A, const Matrix& B) {
     int n = A.size();
     Matrix C(n, vector<int>(n, 0));
-    #pragma omp parallel for collapse(3)
+    // #pragma omp parallel for collapse(3)
     for (int i = 0; i < n; i++) {
         for (int k = 0; k < n; k++) {
             for (int j = 0; j < n; j++) {
@@ -34,7 +34,7 @@ Matrix standardMultiply(const Matrix& A, const Matrix& B) {
 Matrix add(const Matrix& A, const Matrix& B) {
     int n = A.size();
     Matrix C(n, vector<int>(n, 0));
-    #pragma omp parallel for collapse(2)
+    // #pragma omp parallel for collapse(2)
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             C[i][j] = A[i][j] + B[i][j];
@@ -44,7 +44,7 @@ Matrix add(const Matrix& A, const Matrix& B) {
 Matrix subtract(const Matrix& A, const Matrix& B) {
     int n = A.size();
     Matrix C(n, vector<int>(n, 0));
-    #pragma omp parallel for collapse(2)
+    // #pragma omp parallel for collapse(2)
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             C[i][j] = A[i][j] - B[i][j];
@@ -102,7 +102,7 @@ Matrix strassenParallel(const Matrix& A, const Matrix& B) {
     Matrix B11(newSize, vector<int>(newSize)), B12(newSize, vector<int>(newSize)),
         B21(newSize, vector<int>(newSize)), B22(newSize, vector<int>(newSize));
 
-    // Разделение матриц на подматрицы
+  
     for (int i = 0; i < newSize; i++) {
         for (int j = 0; j < newSize; j++) {
             A11[i][j] = A[i][j];
@@ -118,28 +118,27 @@ Matrix strassenParallel(const Matrix& A, const Matrix& B) {
 
     Matrix M1, M2, M3, M4, M5, M6, M7;
 
-    // Параллелим рекурсивные вычисления
-#pragma omp parallel sections
+    #pragma omp parallel sections
     {
-#pragma omp section
+        #pragma omp section
         M1 = strassenParallel(add(A11, A22), add(B11, B22));
 
-#pragma omp section
+        #pragma omp section
         M2 = strassenParallel(add(A21, A22), B11);
 
-#pragma omp section
+        #pragma omp section
         M3 = strassenParallel(A11, subtract(B12, B22));
 
-#pragma omp section
+        #pragma omp section
         M4 = strassenParallel(A22, subtract(B21, B11));
 
-#pragma omp section
+        #pragma omp section
         M5 = strassenParallel(add(A11, A12), B22);
 
-#pragma omp section
+        #pragma omp section
         M6 = strassenParallel(subtract(A21, A11), add(B11, B12));
 
-#pragma omp section
+        #pragma omp section
         M7 = strassenParallel(subtract(A12, A22), add(B21, B22));
     }
 
@@ -157,7 +156,7 @@ Matrix strassenParallel(const Matrix& A, const Matrix& B) {
     return C;
 }
 int main() {
-    int n = 1024;
+    int n = 512;
     Matrix A = generateRandomMatrix(n);
     Matrix B = generateRandomMatrix(n);
 
