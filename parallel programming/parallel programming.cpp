@@ -2,7 +2,8 @@
 #include <vector>
 #include <cstdlib>
 #include <chrono>
-#include <omp.h>  
+#include <fstream>
+#include <omp.h>
 
 using namespace std;
 using Matrix = vector<vector<int>>;
@@ -144,7 +145,7 @@ Matrix strassenParallel(const Matrix& A, const Matrix& B) {
 
     // Сборка результата
     Matrix C(n, vector<int>(n));
-#pragma omp parallel for collapse(2)
+    // #pragma omp parallel for collapse(2)
     for (int i = 0; i < newSize; i++) {
         for (int j = 0; j < newSize; j++) {
             C[i][j] = M1[i][j] + M4[i][j] - M5[i][j] + M7[i][j];
@@ -156,37 +157,36 @@ Matrix strassenParallel(const Matrix& A, const Matrix& B) {
     return C;
 }
 int main() {
-    int n = 512;
-    Matrix A = generateRandomMatrix(n);
-    Matrix B = generateRandomMatrix(n);
+    vector<int> sizes = { 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
+    ofstream file_std("standard_multiply.txt");
+    ofstream file_seq("strassen_sequential.txt");
+    ofstream file_par("strassen_parallel.txt");
 
-    Matrix C_std, C_seq, C_par;
-    double time_std, time_seq, time_par;
+    omp_set_num_threads(4);
 
-	omp_set_num_threads(2); // Установка количества потоков
+    for (int n : sizes) {
+        Matrix A = generateRandomMatrix(n);
+        Matrix B = generateRandomMatrix(n);
 
-    // Стандартное умножение
-    auto start_std = chrono::high_resolution_clock::now();
-    C_std = standardMultiply(A, B);
-    auto end_std = chrono::high_resolution_clock::now();
-    time_std = chrono::duration<double, milli>(end_std - start_std).count();
+        auto start = chrono::high_resolution_clock::now();
+        standardMultiply(A, B);
+        auto end = chrono::high_resolution_clock::now();
+        file_std << n << " " << chrono::duration<double, milli>(end - start).count() << "\n";
 
-    // Последовательное умножение (Штрассен)
-    auto start_seq = chrono::high_resolution_clock::now();
-    C_seq = strassenSequential(A, B);
-    auto end_seq = chrono::high_resolution_clock::now();
-    time_seq = chrono::duration<double, milli>(end_seq - start_seq).count();
+        start = chrono::high_resolution_clock::now();
+        strassenSequential(A, B);
+        end = chrono::high_resolution_clock::now();
+        file_seq << n << " " << chrono::duration<double, milli>(end - start).count() << "\n";
 
-    // Параллельное умножение (Штрассен)
-    auto start_par = chrono::high_resolution_clock::now();
-    C_par = strassenParallel(A, B);
-    auto end_par = chrono::high_resolution_clock::now();
-    time_par = chrono::duration<double, milli>(end_par - start_par).count();
+        start = chrono::high_resolution_clock::now();
+        strassenParallel(A, B);
+        end = chrono::high_resolution_clock::now();
+        file_par << n << " " << chrono::duration<double, milli>(end - start).count() << "\n";
+    }
 
-    // Вывод времени выполнения
-    cout << "Standard multiply: " << time_std << " ms\n";
-    cout << "Sequential Strassen: " << time_seq << " ms\n";
-    cout << "Parallel Strassen: " << time_par << " ms\n";
+    file_std.close();
+    file_seq.close();
+    file_par.close();
 
     return 0;
 }
