@@ -157,12 +157,12 @@ Matrix strassenParallel(const Matrix& A, const Matrix& B) {
     return C;
 }
 int main() {
-    vector<int> sizes = { 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 };
+    vector<int> sizes = { 8, 16, 32, 64, 128 };
     ofstream file_std("standard_multiply.txt");
     ofstream file_seq("strassen_sequential.txt");
     ofstream file_par("strassen_parallel.txt");
 
-    omp_set_num_threads(4);
+    omp_set_num_threads(12);
 
     for (int n : sizes) {
         Matrix A = generateRandomMatrix(n);
