@@ -189,7 +189,7 @@ void benchmarkStrassenParallelThreads(const Matrix& A, const Matrix& B, int n, o
 
 
 int main() {
-    vector<int> sizes = { 2048 };  // Размерность матриц, например 128
+    vector<int> sizes = { 1024 };  // Размерность матриц, например 128
     //ofstream file_std("standard_multiply.txt");
     //ofstream file_seq("strassen_sequential.txt");
     //ofstream file_par("strassen_parallel.txt");
