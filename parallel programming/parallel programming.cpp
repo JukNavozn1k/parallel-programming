@@ -156,37 +156,58 @@ Matrix strassenParallel(const Matrix& A, const Matrix& B) {
     }
     return C;
 }
+
+void benchmarkMatrixMultiplication(const Matrix& A, const Matrix& B, int n, ofstream& file_std, ofstream& file_seq, ofstream& file_par) {
+    auto start = chrono::high_resolution_clock::now();
+    standardMultiply(A, B);
+    auto end = chrono::high_resolution_clock::now();
+    file_std << n << " " << chrono::duration<double, milli>(end - start).count() << "\n";
+
+    start = chrono::high_resolution_clock::now();
+    strassenSequential(A, B);
+    end = chrono::high_resolution_clock::now();
+    file_seq << n << " " << chrono::duration<double, milli>(end - start).count() << "\n";
+
+    start = chrono::high_resolution_clock::now();
+    strassenParallel(A, B);
+    end = chrono::high_resolution_clock::now();
+    file_par << n << " " << chrono::duration<double, milli>(end - start).count() << "\n";
+}
+
+void benchmarkStrassenParallelThreads(const Matrix& A, const Matrix& B, int n, ofstream& file_par_threads) {
+    for (int threads = 1; threads <= 12; threads++) {
+        omp_set_num_threads(threads);
+
+        auto start = chrono::high_resolution_clock::now();
+        for (int i = 0; i < 12; i++) {  // 12 итераций
+            strassenParallel(A, B);
+        }
+        auto end = chrono::high_resolution_clock::now();
+        file_par_threads << threads << " " << chrono::duration<double, milli>(end - start).count() / 12.0 << "\n";  // Среднее время
+    }
+}
+
+
 int main() {
-    vector<int> sizes = { 8, 16, 32, 64, 128 };
-    ofstream file_std("standard_multiply.txt");
-    ofstream file_seq("strassen_sequential.txt");
-    ofstream file_par("strassen_parallel.txt");
+    vector<int> sizes = { 2048 };  // Размерность матриц, например 128
+    //ofstream file_std("standard_multiply.txt");
+    //ofstream file_seq("strassen_sequential.txt");
+    //ofstream file_par("strassen_parallel.txt");
+    ofstream file_par_threads("strassen_parallel_threads.txt");
 
     omp_set_num_threads(12);
 
     for (int n : sizes) {
         Matrix A = generateRandomMatrix(n);
         Matrix B = generateRandomMatrix(n);
-
-        auto start = chrono::high_resolution_clock::now();
-        standardMultiply(A, B);
-        auto end = chrono::high_resolution_clock::now();
-        file_std << n << " " << chrono::duration<double, milli>(end - start).count() << "\n";
-
-        start = chrono::high_resolution_clock::now();
-        strassenSequential(A, B);
-        end = chrono::high_resolution_clock::now();
-        file_seq << n << " " << chrono::duration<double, milli>(end - start).count() << "\n";
-
-        start = chrono::high_resolution_clock::now();
-        strassenParallel(A, B);
-        end = chrono::high_resolution_clock::now();
-        file_par << n << " " << chrono::duration<double, milli>(end - start).count() << "\n";
+      //  benchmarkMatrixMultiplication(A, B, n, file_std, file_seq, file_par);
+        benchmarkStrassenParallelThreads(A, B, n, file_par_threads);  // Новый бенчмарк
     }
 
-    file_std.close();
-    file_seq.close();
-    file_par.close();
+    //file_std.close();
+    //file_seq.close();
+    //file_par.close();
+    file_par_threads.close();
 
     return 0;
 }
