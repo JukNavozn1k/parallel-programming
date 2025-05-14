@@ -156,14 +156,14 @@ Matrix strassenParallel(const Matrix& A, const Matrix& B) {
     return C;
 }
 int main() {
-    int n = 512;
+    int n = 2048;
     Matrix A = generateRandomMatrix(n);
     Matrix B = generateRandomMatrix(n);
 
     Matrix C_std, C_seq, C_par;
     double time_std, time_seq, time_par;
 
-	omp_set_num_threads(2); // Установка количества потоков
+	omp_set_num_threads(8); // Установка количества потоков
 
     // Стандартное умножение
     auto start_std = chrono::high_resolution_clock::now();
